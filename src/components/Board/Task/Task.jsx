@@ -65,7 +65,7 @@ const Task = ({ data }) => {
             >
               {task.description}
             </textarea>
-            <div className="buttons">
+            <div className="buttons operations">
               <button type="submit">Update</button>
               <button onClick={updateMod}>Cancel</button>
             </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Header } from "../Header/Header";
 import { v4 as uuid } from "uuid";
 import Board from "../Board/Board";
@@ -8,6 +8,7 @@ import { getAll, create, update, del } from '../../services/tasks'
 function App() {
   const [boards, setBoards] = useState([]);
   const [tasks, setTasks] = useState([]);
+  let timeout = useRef(null);
   useEffect(() => {
     getAll('boards')
       .then(response => response.json())
@@ -57,7 +58,7 @@ function App() {
       )
     } else {
       setBoards([...boards.filter((board_) => board_.id !== board.id)]);
-      del('boards', board.id); // TODO Last done
+      del('boards', board.id);
     }
   };
   const getFilteredTasks = (index) => {
@@ -65,12 +66,15 @@ function App() {
   };
   const createTask = (task) => {
     setTasks((prevTasks) => [...prevTasks, task]);
+    create('tasks', task);
   };
   const deleteTask = (task) => {
     setTasks([...tasks.filter((task_) => task_.id !== task.id)]);
+    del('tasks', task);
   };
   const updateTask = (task) => {
     setTasks([...tasks.map((task_) => (task_.id === task.id ? task : task_))]);
+    update('tasks', task)
   };
   const startDrag = (e, task) => {
     e.dataTransfer.setData("taskID", task.id);
@@ -84,9 +88,16 @@ function App() {
     task_.board = board;
     const newState = tasks.map((task) => (task.id == task_.id ? task_ : task));
     setTasks([...newState]);
+    update('tasks', task_);
   };
   const changeColor = (color, id) => {
-    setBoards([...boards.map(board_ => board_.id == id ? {...board_, color} : board_)])
+    clearTimeout(timeout.current);
+    let updatedBoard = boards.find(board_ => board_.id === id);
+    updatedBoard.color = color;
+    setBoards([...boards.map(board_ => board_.id == id ? updatedBoard : board_)]);
+    timeout.current = setTimeout(() => {
+      update('boards', updatedBoard);
+    }, 2000);
   }
   return (
     <div className="main_app">

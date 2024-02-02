@@ -87,7 +87,7 @@ const Board = ({ data }) => {
           <h2>No tasks to show</h2>
         )}
       </div>
-      <input type="color" name="bg_color" id="bg_color" onChange={handleBgColor} defaultValue='#ffff94'/>
+      <input type="color" name="bg_color" id="bg_color" onChange={handleBgColor} defaultValue={board_.color}/>
     </>
   );
 };
