@@ -15,6 +15,7 @@ const Board = ({ data }) => {
     startDrag,
     draggingOver,
     onDrop,
+    changeColor
   } = data;
   const addTasktoBoard = (e) => {
     e.preventDefault();
@@ -36,6 +37,9 @@ const Board = ({ data }) => {
   const updateAdding = () => {
     setAdding(!adding);
   };
+  const handleBgColor = (e) => {
+    changeColor(e.target.value, board_.id)
+  }
   return (
     <>
       <div className="board_title">
@@ -83,6 +87,7 @@ const Board = ({ data }) => {
           <h2>No tasks to show</h2>
         )}
       </div>
+      <input type="color" name="bg_color" id="bg_color" onChange={handleBgColor} defaultValue='#ffff94'/>
     </>
   );
 };
