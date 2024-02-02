@@ -3,19 +3,15 @@ import { Header } from "../Header/Header";
 import { v4 as uuid } from "uuid";
 import Board from "../Board/Board";
 import { Footer } from "../Footer/Footer";
-import { getAll, create, update, del } from '../../services/tasks'
+import { getAll, save } from '../../services/tasks'
 
 function App() {
   const [boards, setBoards] = useState([]);
   const [tasks, setTasks] = useState([]);
   let timeout = useRef(null);
   useEffect(() => {
-    getAll('boards')
-      .then(response => response.json())
-      .then(data => setBoards([...data]));
-    getAll('tasks')
-      .then(response => response.json())
-      .then(data => setTasks([...data]));
+    setBoards([...getAll('boards')]);
+    setTasks([...getAll('tasks')]);
   },[])
   const addBoard = (e) => {
     e.preventDefault();
@@ -36,17 +32,21 @@ function App() {
           "You already have a board with this name, do you want to rewrite it?"
         );
         if (confirm)
-          setBoards([
-            ...boards.map((board_) =>
+          setBoards((prevBoards) => {
+            const updatedBoards = prevBoards.map((board_) =>
               board_.title.toLocaleLowerCase() === title.toLocaleLowerCase()
                 ? board
                 : board_
-            ),
-          ]);
-          update('boards', board);
+            );
+            save('boards', updatedBoards);
+            return updatedBoards;
+          });
       } else {
-        setBoards([...boards, board]);
-        create('boards', board);
+        setBoards((prevBoards) => {
+          const newBoards = [...prevBoards, board];
+          save('boards', newBoards);
+          return newBoards;
+        });
       }
     }
     e.target.board_name.value = "";
@@ -57,24 +57,36 @@ function App() {
         "You must complete or delete all tasks of this board before deleting it"
       )
     } else {
-      setBoards([...boards.filter((board_) => board_.id !== board.id)]);
-      del('boards', board.id);
+      setBoards(prevBoards => {
+        const newBoards = prevBoards.filter((board_) => board_.id !== board.id);
+        save('boards', newBoards);
+        return newBoards
+      })
     }
   };
   const getFilteredTasks = (index) => {
     return tasks.filter((board_) => board_.board == index);
   };
   const createTask = (task) => {
-    setTasks((prevTasks) => [...prevTasks, task]);
-    create('tasks', task);
+    setTasks(prevTasks => {
+      const newTasks = [...prevTasks, task];
+      save('tasks', newTasks);
+      return newTasks
+    })
   };
   const deleteTask = (task) => {
-    setTasks([...tasks.filter((task_) => task_.id !== task.id)]);
-    del('tasks', task);
+    setTasks(prevTasks => {
+      const newTasks = prevTasks.filter((task_) => task_.id !== task.id);
+      save('tasks', newTasks);
+      return newTasks;
+    })
   };
   const updateTask = (task) => {
-    setTasks([...tasks.map((task_) => (task_.id === task.id ? task : task_))]);
-    update('tasks', task)
+    setTasks(prevTasks => {
+      const newTasks = prevTasks.map((task_) => (task_.id === task.id ? task : task_));
+      save('tasks', newTasks);
+      return newTasks;
+    })
   };
   const startDrag = (e, task) => {
     e.dataTransfer.setData("taskID", task.id);
@@ -86,18 +98,23 @@ function App() {
     const taskID = e.dataTransfer.getData("taskID");
     const task_ = tasks.find((task_) => task_.id == taskID);
     task_.board = board;
-    const newState = tasks.map((task) => (task.id == task_.id ? task_ : task));
-    setTasks([...newState]);
-    update('tasks', task_);
+    setTasks(prevTasks => {
+      const newTasks = [...prevTasks.map((task) => (task.id == task_.id ? task_ : task))];
+      save('tasks', newTasks)
+      return newTasks;
+    })
   };
   const changeColor = (color, id) => {
     clearTimeout(timeout.current);
     let updatedBoard = boards.find(board_ => board_.id === id);
     updatedBoard.color = color;
-    setBoards([...boards.map(board_ => board_.id == id ? updatedBoard : board_)]);
-    timeout.current = setTimeout(() => {
-      update('boards', updatedBoard);
-    }, 2000);
+    setBoards(prevBoards => {
+      const newBoards = [...prevBoards.map(board_ => board_.id == id ? updatedBoard : board_)] ;
+      timeout.current = setTimeout(() => {
+        save('boards', newBoards)
+      }, 2000);
+      return newBoards;
+    })
   }
   return (
     <div className="main_app">

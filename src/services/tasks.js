@@ -1,28 +1,12 @@
-const _url = 'http://localhost:3000';
+export const getAll = (term) => {
+    if (localStorage.getItem(term)===null) {
+        localStorage.setItem(term, JSON.stringify([]));
+        return [];
+    } else {
+        return JSON.parse(localStorage.getItem(term));
+    }
+}
 
-export const getAll = term => {
-    return fetch(`${_url}/${term}`);
-}
-export const create = (term, object) => {
-    return fetch(`${_url}/${term}`, {
-        method:"POST",
-        headers: {
-            "Content-Type":"application/json",
-        },
-        body: JSON.stringify(object)
-    })
-}
-export const update = (term, object) => {
-    return fetch(`${_url}/${term}/${object.id}`, {
-        method:"PATCH",
-        headers: {
-            "Content-Type":"application/json",
-        },
-        body: JSON.stringify(object)
-    })
-}
-export const del = (term, id) => {
-    return fetch(`${_url}/${term}/${id}`, {
-        method:"DELETE"
-    })
+export const save = (term, array) => {
+    localStorage.setItem(term, JSON.stringify(array));
 }
